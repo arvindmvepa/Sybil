@@ -19,10 +19,10 @@ root_img_dir = "/mii/data/lung/nlst/NLST_CT_raw/data"
 patient_file = "participant_d100814.sas7bdat"
 (patient_df, _) = pyreadstat.read_sas7bdat(patient_file)
 
-preds = []
 gt_labels = []
+preds = []
 print(f"Evaluating {len(test_pids)} test patients.")
-for test_pid in tqdm(test_pids[:50]):
+for test_pid in tqdm(test_pids[:2]):
     pid_ann_df = patient_df.loc[patient_df["pid"] == test_pid]
     cancyr = pid_ann_df['cancyr'].iloc[0]
     has_cancer = 0
@@ -46,7 +46,7 @@ for test_pid in tqdm(test_pids[:50]):
             # Get risk score
             score = model.predict([serie])
             preds.append(score[-1])
-            #print(f"Patient ID: {test_pid}, Time Point: {time_index}, Risk Score: {score}")
+            print(f"Patient ID: {test_pid}, Time Point: {time_index}, Risk Score: {score[-1]}")
 
 # Calculate AUC
 from sklearn.metrics import roc_auc_score
