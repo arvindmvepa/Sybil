@@ -43,6 +43,8 @@ for test_pid in tqdm(test_pids):
                 if min_img_files is None or len(img_files) < len(min_img_files):
                     min_img_files = img_files
                     min_img_dir_pos = img_dir_pos
+            if min_img_files is None or len(min_img_files) < 20:
+                continue
             # Create a Serie object for the patient
             serie = Serie(min_img_files)
             gt_labels.append(has_cancer)
