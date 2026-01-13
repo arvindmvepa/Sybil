@@ -54,10 +54,11 @@ auc = roc_auc_score(gt_labels, preds)
 print(f"AUC: {auc}")
 
 # Calculate accuracy at threshold 0.5
-pred_labels = [1 if p >= 0.5 else 0 for p in preds
+pred_labels = [1 if p >= 0.5 else 0 for p in preds]
 from sklearn.metrics import accuracy_score
 accuracy = accuracy_score(gt_labels, pred_labels)
 print(f"Accuracy: {accuracy}")
+
 # Calculate sensitivity and specificity
 from sklearn.metrics import confusion_matrix
 tn, fp, fn, tp = confusion_matrix(gt_labels, pred_labels).ravel()
