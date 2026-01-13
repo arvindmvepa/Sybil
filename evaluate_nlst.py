@@ -15,7 +15,7 @@ test_pids = test_df['PID'].tolist()
 
 img_dir = "/mii/data/lung/nlst/NLST_CT_raw/data"
 for test_pid in test_pids:
-    patient_dir = os.path.join(img_dir, test_pid)
+    patient_dir = os.path.join(img_dir, str(test_pid))
     time_points = sorted(glob(os.path.join(patient_dir, "*")))
     for time_index, time_point in enumerate(time_points):
         img_dirs = sorted(glob(os.path.join(time_point, "*")))
