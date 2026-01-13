@@ -45,7 +45,7 @@ for test_pid in tqdm(test_pids[:2]):
             gt_labels.append(has_cancer)
             # Get risk score
             pred = model.predict([serie])
-            preds.append(score[-1])
+            preds.append(pred.scores[-1])
             print(f"Patient ID: {test_pid}, Time Point: {time_index}, Risk Score: {pred.scores}")
 
 # Calculate AUC
