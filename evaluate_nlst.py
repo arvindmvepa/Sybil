@@ -37,7 +37,7 @@ for test_pid in test_pids:
                     max_img_files = img_files
                     max_img_dir_pos = img_dir_pos
             # Create a Serie object for the patient
-            serie = Serie(max_img_files)
+            serie = Serie(max_img_files, label=has_cancer)
             # Get risk score
-            score = model.evaluate([serie], label=has_cancer)
+            score = model.evaluate([serie])
             print(f"Patient ID: {test_pid}, Time Point: {time_index}, Risk Score: {score}")
