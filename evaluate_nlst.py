@@ -18,6 +18,7 @@ print(f"Evaluating {len(test_pids)} test patients.")
 for test_pid in test_pids:
     patient_dir = os.path.join(img_dir, str(test_pid))
     time_points = sorted(glob(os.path.join(patient_dir, "*")))
+    print(f"Evaluating Patient ID: {test_pid} with {len(time_points)} time points.")
     for time_index, time_point in enumerate(time_points):
         img_dirs = sorted(glob(os.path.join(time_point, "*")))
         max_img_files = None
