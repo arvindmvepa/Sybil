@@ -13,13 +13,11 @@ test_df = df[df['SPLIT'] == 'test']
 test_pids = test_df['PID'].tolist()
 
 
-img_dir = "/mii/data/lung/nlst/NLST_CT_raw/data"
+root_img_dir = "/mii/data/lung/nlst/NLST_CT_raw/data"
 print(f"Evaluating {len(test_pids)} test patients.")
 for test_pid in test_pids:
-    patient_dir = os.path.join(img_dir, str(test_pid))
-    print(patient_dir)
+    patient_dir = os.path.join(root_img_dir, str(test_pid))
     time_points = sorted(glob(os.path.join(patient_dir, "*")))
-    print(f"Evaluating Patient ID: {test_pid} with {len(time_points)} time points.")
     for time_index, time_point in enumerate(time_points):
         img_dirs = sorted(glob(os.path.join(time_point, "*")))
         max_img_files = None
