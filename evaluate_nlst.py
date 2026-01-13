@@ -44,9 +44,9 @@ for test_pid in tqdm(test_pids[:2]):
             serie = Serie(max_img_files)
             gt_labels.append(has_cancer)
             # Get risk score
-            score = model.predict([serie])
+            pred = model.predict([serie])
             preds.append(score[-1])
-            print(f"Patient ID: {test_pid}, Time Point: {time_index}, Risk Score: {score}")
+            print(f"Patient ID: {test_pid}, Time Point: {time_index}, Risk Score: {pred.scores}")
 
 # Calculate AUC
 from sklearn.metrics import roc_auc_score
