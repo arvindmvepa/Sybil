@@ -22,7 +22,7 @@ patient_file = "participant_d100814.sas7bdat"
 gt_labels = []
 preds = []
 print(f"Evaluating {len(test_pids)} test patients.")
-for test_pid in tqdm(test_pids[:2]):
+for test_pid in tqdm(test_pids):
     pid_ann_df = patient_df.loc[patient_df["pid"] == test_pid]
     cancyr = pid_ann_df['cancyr'].iloc[0]
     has_cancer = 0
@@ -61,7 +61,7 @@ print(f"Accuracy: {accuracy}")
 
 # Calculate sensitivity and specificity
 from sklearn.metrics import confusion_matrix
-tn, fp, fn, tp = confusion_matrix(gt_labels, pred_labels).ravel()
+tn, fp, fn, tp = confusion_matrix(gt_labels, pred_labels).ravel().tolist()
 sensitivity = tp / (tp + fn)
 specificity = tn / (tn + fp)
 print(f"Sensitivity: {sensitivity}")
