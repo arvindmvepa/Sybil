@@ -46,7 +46,7 @@ for test_pid in tqdm(test_pids[:2]):
             # Get risk score
             pred = model.predict([serie])
             preds.append(pred.scores[-1])
-            print(f"Patient ID: {test_pid}, Time Point: {time_index}, Risk Score: {pred.scores}")
+            print(f"Patient ID: {test_pid}, Time Point: {time_index}, Risk Score: {pred.scores}, {pred.scores[0][-1]}")
 
 # Calculate AUC
 from sklearn.metrics import roc_auc_score
