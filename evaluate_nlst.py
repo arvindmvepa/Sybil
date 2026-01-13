@@ -1,6 +1,8 @@
 from sybil import Serie, Sybil
 import pandas as pd
 from glob import glob
+import os
+
 
 # Load a trained model
 model = Sybil("sybil_ensemble")
