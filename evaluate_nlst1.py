@@ -54,7 +54,7 @@ for test_pid in tqdm(test_pids):
                 preds.append(pred.scores[0][-1])
                 #print(f"Patient ID: {test_pid}, Time Point: {time_index}, Risk Score: {pred.scores}, {pred.scores[0][-1]}")
             except Exception as e:
-                continue
+                print(f"Error processing patient {test_pid}, time point {time_index}: {str(e)}")
 
 # Calculate AUC
 from sklearn.metrics import roc_auc_score
