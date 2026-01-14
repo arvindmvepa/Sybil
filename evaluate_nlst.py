@@ -42,13 +42,16 @@ for test_pid in tqdm(test_pids):
                     max_img_dir_pos = img_dir_pos
             if max_img_files is None or len(max_img_files) < 20:
                 continue
-            # Create a Serie object for the patient
-            serie = Serie(max_img_files)
-            gt_labels.append(has_cancer)
-            # Get risk score
-            pred = model.predict([serie])
-            preds.append(pred.scores[0][-1])
-            #print(f"Patient ID: {test_pid}, Time Point: {time_index}, Risk Score: {pred.scores}, {pred.scores[0][-1]}")
+            try:
+                # Create a Serie object for the patient
+                serie = Serie(min_img_files)
+                # Get risk score
+                pred = model.predict([serie])
+                gt_labels.append(has_cancer)
+                preds.append(pred.scores[0][-1])
+                #print(f"Patient ID: {test_pid}, Time Point: {time_index}, Risk Score: {pred.scores}, {pred.scores[0][-1]}")
+            except Exception as e:
+                continue
 
 # Calculate AUC
 from sklearn.metrics import roc_auc_score
