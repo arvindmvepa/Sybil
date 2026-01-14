@@ -44,7 +44,7 @@ for test_pid in tqdm(test_pids):
                 continue
             try:
                 # Create a Serie object for the patient
-                serie = Serie(min_img_files)
+                serie = Serie(max_img_files)
                 # Get risk score
                 pred = model.predict([serie])
                 gt_labels.append(has_cancer)
