@@ -43,9 +43,10 @@ for pid in tqdm(pids):
             volume = volume.to(model.device)
             embeddings = []
             for model_ in model.ensemble:
-                embeddings_ = model_.image_encoder(volume)
-                print(f"embeddings_.shape: {embeddings_.shape}")
-                embeddings.append(embeddings_)
+                with torch.no_grad():
+                    embeddings_ = model_.image_encoder(volume)
+                    print(f"embeddings_.shape: {embeddings_.shape}")
+                    embeddings.append(embeddings_)
             embeddings = torch.cat(embeddings, dim=0)
             print(f"embeddings.shape: {embeddings.shape}")
             if embeddings.size().tolist()[1:] != [512, 25, 16, 16]:
