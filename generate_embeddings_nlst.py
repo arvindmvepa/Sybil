@@ -21,7 +21,7 @@ save_dir = "/hsuraid/avepa/nlst_sybil_embeddings"
 
 print(f"Saving embeddings for {len(pids)} patients.")
 
-for pid in tqdm(pids):
+for pid in tqdm(pids[:7500]):
     patient_dir = os.path.join(root_img_dir, str(pid))
     if os.path.exists(patient_dir):
         time_points = sorted(glob(os.path.join(patient_dir, "*")))
@@ -46,14 +46,11 @@ for pid in tqdm(pids):
             for model_ in model.ensemble:
                 with torch.no_grad():
                     embeddings_ = model_.image_encoder(volume)
-                    print(f"embeddings_.shape: {embeddings_.shape}")
                     embeddings.append(embeddings_)
             embeddings = torch.cat(embeddings, dim=0)
-            print(f"embeddings.shape: {embeddings.shape}")
             if list(embeddings.size())[1:] != [512, 25, 16, 16]:
                 continue
             embeddings = torch.mean(embeddings, dim=0)
-            print(f"embeddings.shape (mean): {embeddings.shape}")
             save_file({"embeddings": embeddings}, os.path.join(save_dir, f"pid{pid}_ts{time_index}.st"))  
             
 
