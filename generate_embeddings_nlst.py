@@ -50,7 +50,7 @@ for pid in tqdm(pids):
                     embeddings.append(embeddings_)
             embeddings = torch.cat(embeddings, dim=0)
             print(f"embeddings.shape: {embeddings.shape}")
-            if embeddings.size().tolist()[1:] != [512, 25, 16, 16]:
+            if list(embeddings.size())[1:] != [512, 25, 16, 16]:
                 continue
             embeddings = torch.mean(embeddings, dim=0)
             print(f"embeddings.shape (mean): {embeddings.shape}")
