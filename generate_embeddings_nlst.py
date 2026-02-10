@@ -21,7 +21,7 @@ save_dir = "/hsuraid/avepa/nlst_sybil_embeddings"
 
 print(f"Saving embeddings for {len(pids)} patients.")
 
-for pid in tqdm(pids[:7500]):
+for pid in tqdm(pids):
     patient_dir = os.path.join(root_img_dir, str(pid))
     if os.path.exists(patient_dir):
         time_points = sorted(glob(os.path.join(patient_dir, "*")))
@@ -37,6 +37,9 @@ for pid in tqdm(pids[:7500]):
                     min_img_files = img_files
                     min_img_dir_pos = img_dir_pos
             if min_img_files is None or len(min_img_files) < 20:
+                continue
+            save_path = os.path.join(save_dir, f"pid{pid}_ts{time_index}.st")
+            if os.path.exists(save_path):
                 continue
             # Create a Serie object for the patient
             serie = Serie(min_img_files)
