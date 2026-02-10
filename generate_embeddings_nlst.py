@@ -42,7 +42,10 @@ for pid in tqdm(pids):
             if os.path.exists(save_path):
                 continue
             # Create a Serie object for the patient
-            serie = Serie(min_img_files)
+            try:
+                serie = Serie(min_img_files)
+            except:
+                continue
             volume = serie.get_volume()
             volume = volume.to(model.device)
             embeddings = []
