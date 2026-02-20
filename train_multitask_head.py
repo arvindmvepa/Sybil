@@ -249,7 +249,7 @@ def main():
     val_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False, num_workers=4)
     test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, num_workers=4)
     
-    num_classes_per_task = [7, 4, 7, 3, 3]
+    num_classes_per_task = [8, 4, 7, 3, 3]
     
     # Model
     embedding_dim = 512 * 25 * 16 * 16  # Flattened embedding dimension
