@@ -46,7 +46,7 @@ class MultiTaskDataset(Dataset):
         
         # Create labels tensor
         classification_labels = torch.tensor([
-            location, interval_change, interval_growth, margins, predominant_attenuation
+            location, margins, predominant_attenuation, interval_change, interval_growth
         ], dtype=torch.long)
         
         regression_labels = torch.tensor([
@@ -166,13 +166,15 @@ class MultiTaskLoss(nn.Module):
         return total_loss, losses
 
 
-def evaluate_model(model, dataloader, criterion, device):
+def evaluate_model(model, dataloader, criterion, device, 
+classification_task_names=('location', 'margins', 'predominant_attenuation','interval_change', 'interval_growth'), 
+regression_task_names = ('longest_diameter', 'longest_perpendicular_diameter')):
     model.eval()
     total_loss = 0.0
-    all_classification_preds = [[] for _ in range(5)]
-    all_classification_labels = [[] for _ in range(5)]
-    all_regression_preds = [[] for _ in range(2)]
-    all_regression_labels = [[] for _ in range(2)]
+    all_classification_preds = [[] for _ in range(len(classification_task_names))]
+    all_classification_labels = [[] for _ in range(len(classification_task_names))]
+    all_regression_preds = [[] for _ in range(len(regression_task_names))]
+    all_regression_labels = [[] for _ in range(len(regression_task_names))]
     
     with torch.no_grad():
         for batch in tqdm(dataloader, desc="Evaluating"):
@@ -212,14 +214,12 @@ def evaluate_model(model, dataloader, criterion, device):
     metrics['loss'] = avg_loss
     
     # Classification metrics
-    classification_task_names = ['location', 'interval_change', 'interval_growth', 'margins', 'predominant_attenuation']
     for i, task_name in enumerate(classification_task_names):
         if len(all_classification_preds[i]) > 0:
             accuracy = accuracy_score(all_classification_labels[i], all_classification_preds[i])
             metrics[f'{task_name}_accuracy'] = accuracy
     
     # Regression metrics
-    regression_task_names = ['longest_diameter', 'longest_perpendicular_diameter']
     for i, task_name in enumerate(regression_task_names):
         if len(all_regression_preds[i]) > 0:
             mse = mean_squared_error(all_regression_labels[i], all_regression_preds[i])
