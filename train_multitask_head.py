@@ -57,11 +57,6 @@ class MultiTaskDataset(Dataset):
         classification_mask = (classification_labels != -1)
         regression_mask = (regression_labels != -1.0)
         
-        # Debug: Print first few samples to understand the data
-        if idx < 3:  # Only print for first 3 samples
-            print(f"Sample {idx}: classification_labels = {classification_labels}")
-            print(f"Sample {idx}: classification_mask = {classification_mask}")
-        
         return {
             'embedding': embedding,
             'classification_labels': classification_labels,
@@ -140,17 +135,12 @@ class MultiTaskLoss(nn.Module):
         # Classification losses
         for i, output in enumerate(classification_outputs):
             task_mask = classification_mask[:, i]
-            print(f"Task {i}: mask sum = {task_mask.sum()}, original labels = {classification_labels[:, i][:10]}")
             if task_mask.sum() > 0:  # Only compute loss if there are valid labels
                 valid_labels = classification_labels[:, i][task_mask]
                 valid_outputs = output[task_mask]
-                print(f"Task {i}: valid_labels min={valid_labels.min()}, max={valid_labels.max()}, unique={torch.unique(valid_labels)}")
-                print(f"Task {i}: output shape = {valid_outputs.shape}, expected classes = {valid_outputs.shape[1] if len(valid_outputs.shape) > 1 else 'N/A'}")
                 task_loss = self.classification_criterion(valid_outputs, valid_labels).mean()
                 total_loss += task_loss
                 losses[f'classification_task_{i}'] = task_loss.item()
-            else:
-                print(f"Task {i}: No valid labels, skipping")
         
         # Regression losses
         for i in range(self.num_regression_tasks):
@@ -260,7 +250,6 @@ def main():
     test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, num_workers=4)
     
     num_classes_per_task = [8, 4, 7, 3, 3]
-    print(f"Model expects number of classes per task: {num_classes_per_task}")
     
     # Model
     embedding_dim = 512 * 25 * 16 * 16  # Flattened embedding dimension
@@ -295,15 +284,6 @@ def main():
             optimizer.zero_grad()
             
             classification_outputs, regression_output = model(embeddings)
-            
-            # Debug: Print tensor shapes and label ranges for first batch
-            if total_train_loss == 0:  # First batch only
-                print("=== FIRST BATCH DEBUG INFO ===")
-                for i, output in enumerate(classification_outputs):
-                    print(f"Task {i}: output shape = {output.shape}, num_classes = {num_classes_per_task[i]}")
-                print(f"Classification labels shape: {classification_labels.shape}")
-                print(f"Classification mask shape: {classification_mask.shape}")
-                print("=== END DEBUG INFO ===")
             
             loss, loss_dict = criterion(classification_outputs, regression_output,
                                       classification_labels, regression_labels,
