@@ -109,9 +109,9 @@ def evaluate_model(model, dataloader, criterion, device):
 
 def main():
     parser = argparse.ArgumentParser(description='Train multi-task head for NLST embeddings')
-    parser.add_argument('--train_file', required=True, default="nlst_cancer_train_aux_vqa_delta2True_v0.json", help='Path to training data JSON file')
-    parser.add_argument('--val_file', required=True, default="nlst_cancer_val_aux_vqa_delta2True_v0.json", help='Path to validation data JSON file') 
-    parser.add_argument('--test_file', required=True, default="nlst_cancer_test_aux_vqa_delta2True_v0.json", help='Path to test data JSON file')
+    parser.add_argument('--train_file', required=False, default="nlst_cancer_train_aux_vqa_delta2True_v0.json", help='Path to training data JSON file')
+    parser.add_argument('--val_file', required=False, default="nlst_cancer_val_aux_vqa_delta2True_v0.json", help='Path to validation data JSON file') 
+    parser.add_argument('--test_file', required=False, default="nlst_cancer_test_aux_vqa_delta2True_v0.json", help='Path to test data JSON file')
     parser.add_argument('--batch_size', type=int, default=32, help='Batch size')
     parser.add_argument('--epochs', type=int, default=100, help='Number of epochs')
     parser.add_argument('--lr', type=float, default=0.001, help='Learning rate')
