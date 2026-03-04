@@ -5,7 +5,7 @@ import os
 import pyreadstat
 from tqdm import tqdm
 import torch
-from safetensors.torch import save_file
+from safetensors.torch import save_file, load_file
 
 
 # Load a trained model
@@ -18,6 +18,7 @@ pids = df['PID'].tolist()
 
 root_img_dir = "/mii/data/lung/nlst/NLST_CT_raw/data"
 save_dir = "/hsuraid/avepa/nlst_sybil_embeddings"
+validate_embeddings = True
 
 print(f"Saving embeddings for {len(pids)} patients.")
 
@@ -57,6 +58,10 @@ for pid in tqdm(pids):
             if list(embeddings.size())[1:] != [512, 25, 16, 16]:
                 continue
             embeddings = torch.mean(embeddings, dim=0)
-            save_file({"embeddings": embeddings}, os.path.join(save_dir, f"pid{pid}_ts{time_index}.st"))  
-            
-
+            embeddings_file_path = os.path.join(save_dir, f"pid{pid}_ts{time_index}.st")
+            if validate_embeddings:
+                loaded_embeddings = load_file(embeddings_file_path)['embeddings']
+                if not torch.allclose(embeddings, loaded_embeddings):
+                    print(f"Validation failed for {embeddings_file_path}")
+            else:
+                save_file({"embeddings": embeddings}, embeddings_file_path) 
