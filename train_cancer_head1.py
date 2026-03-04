@@ -56,7 +56,7 @@ class ClassificationHead(nn.Module):
         self.linear = nn.Linear(512, 2)
     
     def forward(self, x):
-        x = self.pool(x)
+        x = self.pool(x)["hidden"]
         x = self.relu(x)
         x = self.dropout(x)
         x = self.linear(x)
