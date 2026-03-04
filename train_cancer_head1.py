@@ -28,9 +28,6 @@ class BinaryClassificationDataset(Dataset):
         embedding_data = load_file(item['embedding_path'])
         embedding = embedding_data['embeddings']  # Shape should be [512, 25, 16, 16]
         
-        # Flatten the embedding for the classifier head
-        embedding = embedding.flatten()
-        
         # Extract labels (only first entry of each list)
         content_info = item['content_info']
         
@@ -52,12 +49,11 @@ class ClassificationHead(nn.Module):
         super().__init__()
         
         self.input_dim = input_dim
-        self.hidden_dim = hidden_dim
 
         self.pool = MultiAttentionPool()
         self.relu = nn.ReLU(inplace=False)
         self.dropout = nn.Dropout(p=0.25)
-        self.linear = nn.Linear(self.hidden_dim, 2)
+        self.linear = nn.Linear(512, 2)
     
     def forward(self, x):
         x = self.pool(x)
