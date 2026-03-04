@@ -52,7 +52,7 @@ class ClassificationHead(nn.Module):
         super().__init__()
         
         self.input_dim = input_dim
-        self.hidden_dim = 512
+        self.hidden_dim = hidden_dim
 
         self.pool = MultiAttentionPool()
         self.relu = nn.ReLU(inplace=False)
