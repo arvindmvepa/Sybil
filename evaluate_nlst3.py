@@ -23,8 +23,8 @@ class BinaryClassificationDataset(Dataset):
         return len(self.data)
 
     def get_series(self, embedding_path):
-        #pid_str, ts_str = embedding_path.replace(".st", "").split("_")
-        print(embedding_path.replace(".st", "").split("_"))
+        embedding_path = os.path.basename(embedding_path)
+        pid_str, ts_str = embedding_path.replace(".st", "").split("_")
         pid_str = pid_str.replace("pid", "")
         embedding_path_time_index = int(ts_str.replace("ts", ""))
         patient_dir = os.path.join(root_img_dir, pid_str)
