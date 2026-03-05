@@ -10,6 +10,20 @@ from torch.utils.data import Dataset, DataLoader
 from safetensors.torch import load_file
 import argparse
 from sklearn.metrics import roc_auc_score, accuracy_score, mean_squared_error, r2_score, classification_report
+from torch.utils.data._utils.collate import default_collate
+
+
+def collate_with_serie_as_list(batch):
+    # batch is a list of samples; each sample is usually a dict
+    out = {}
+    for k in batch[0].keys():
+        vals = [b[k] for b in batch]
+        # keep Serie objects as a list
+        if isinstance(vals[0], Serie):
+            out[k] = vals
+        else:
+            out[k] = default_collate(vals)
+    return out
 
 
 class BinaryClassificationDataset(Dataset):
@@ -120,7 +134,7 @@ def main():
     
     # Datasets and dataloaders
     eval_dataset = BinaryClassificationDataset(args.eval_file)
-    eval_loader = DataLoader(eval_dataset, batch_size=1, shuffle=False, num_workers=4)
+    eval_loader = DataLoader(eval_dataset, batch_size=1, collate_fn=collate_with_serie_as_list, shuffle=False, num_workers=4)
     
     # Load a trained model
     model = Sybil("sybil_ensemble", device=device)
