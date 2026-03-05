@@ -100,6 +100,9 @@ def main():
     
     # Load a trained model
     model = Sybil("sybil_ensemble")
+    # Move model to the same device as data
+    for sybil_model in model.models:
+        sybil_model.to(device)
 
     # Evaluation
     print("Evaluating on evaluation set...")
