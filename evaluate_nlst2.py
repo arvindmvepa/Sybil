@@ -54,11 +54,9 @@ def evaluate_model(model, dataloader, device):
             labels = batch['classification_labels'].to(device)
             
             outputs = model.partial_predict(embeddings)
+            preds = outputs.scores[0][-1]
             
-            
-            # Collect predictions for metrics
-            preds = torch.argmax(outputs, dim=1)
-            all_preds.extend(preds.cpu().numpy())
+            all_preds.append(preds)
             all_labels.extend(labels.cpu().numpy())
     
     # Calculate metrics
