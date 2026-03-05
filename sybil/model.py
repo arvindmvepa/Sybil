@@ -425,8 +425,6 @@ class Sybil:
         self._logger.debug(f"Beginning prediction on device: {self.device}")
 
         scores = []
-        attentions_ = [] if return_attentions else None
-        attention_keys = None
         for sybil in self.ensemble:
             pred = self._partial_predict(sybil, embedding)
             scores.append(pred.scores)
