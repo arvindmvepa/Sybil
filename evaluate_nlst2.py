@@ -72,7 +72,8 @@ def evaluate_model(model, dataloader, device):
         metrics['auc'] = auc
         
         # Calculate per-class metrics
-        report = classification_report(all_labels, all_preds, output_dict=True, zero_division=0)
+        all_pred_labels = [1 if p >= 0.5 else 0 for p in all_preds]
+        report = classification_report(all_labels, all_pred_labels, output_dict=True, zero_division=0)
         metrics['precision'] = report['macro avg']['precision']
         metrics['recall'] = report['macro avg']['recall']
         metrics['f1'] = report['macro avg']['f1-score']
