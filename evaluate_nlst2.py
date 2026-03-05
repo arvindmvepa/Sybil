@@ -1,5 +1,6 @@
 from sybil import Serie, Sybil
 import pandas as pd
+import json
 from glob import glob
 import os
 import pyreadstat
