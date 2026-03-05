@@ -19,7 +19,7 @@ pids = df['PID'].tolist()
 
 root_img_dir = "/mii/data/lung/nlst/NLST_CT_raw/data"
 save_dir = f"/hsuraid/avepa/nlst_{model_str}_embeddings"
-validate_embeddings = True
+validate_embeddings = False
 
 print(f"Saving embeddings for {len(pids)} patients.")
 
@@ -60,7 +60,6 @@ for pid in tqdm(pids):
                 continue
             if embeddings.size()[0] == 1:
                 embeddings = embeddings.squeeze(0)
-                print("No averaging")
             else:
                 embeddings = torch.mean(embeddings, dim=0)
             embeddings_file_path = os.path.join(save_dir, f"pid{pid}_ts{time_index}.st")
