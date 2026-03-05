@@ -97,7 +97,7 @@ def evaluate_model(model, dataloader, device):
             
             all_preds.append(preds)
             all_labels.extend(labels.cpu().numpy())
-            if index > 100:
+            if index > 1000:
                 break
     
     # Calculate metrics
