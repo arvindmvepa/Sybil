@@ -7,6 +7,7 @@ import pyreadstat
 from tqdm import tqdm
 import torch
 from torch.utils.data import Dataset, DataLoader
+from safetensors.torch import load_file
 import argparse
 from sklearn.metrics import roc_auc_score, accuracy_score, mean_squared_error, r2_score, classification_report
 
