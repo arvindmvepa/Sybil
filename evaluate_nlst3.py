@@ -46,6 +46,7 @@ class BinaryClassificationDataset(Dataset):
             if time_index == embedding_path_time_index:
                 serie = Serie(min_img_files)
                 return serie
+        raise ValueError("Method should return beforehand!")
     
     def __getitem__(self, idx):
         item = self.data[idx]
