@@ -27,7 +27,7 @@ class BinaryClassificationDataset(Dataset):
         pid_str, ts_str = embedding_path.replace(".st", "").split("_")
         pid_str = pid_str.replace("pid", "")
         embedding_path_time_index = int(ts_str.replace("ts", ""))
-        patient_dir = os.path.join(root_img_dir, pid_str)
+        patient_dir = os.path.join(self.root_img_dir, pid_str)
         time_points = sorted(glob(os.path.join(patient_dir, "*")))
 
         for time_index, time_point in enumerate(time_points):
