@@ -9,7 +9,8 @@ from safetensors.torch import save_file, load_file
 
 
 # Load a trained model
-model = Sybil("sybil_ensemble")
+model_str = "sybil_1"
+model = Sybil(model_str)
 
 # load pid2split
 df = pd.read_csv("pid2split.csv")
@@ -17,7 +18,7 @@ pids = df['PID'].tolist()
 
 
 root_img_dir = "/mii/data/lung/nlst/NLST_CT_raw/data"
-save_dir = "/hsuraid/avepa/nlst_sybil_embeddings"
+save_dir = f"/hsuraid/avepa/nlst_{model_str}_embeddings"
 validate_embeddings = True
 
 print(f"Saving embeddings for {len(pids)} patients.")
@@ -57,7 +58,11 @@ for pid in tqdm(pids):
             embeddings = torch.cat(embeddings, dim=0)
             if list(embeddings.size())[1:] != [512, 25, 16, 16]:
                 continue
-            embeddings = torch.mean(embeddings, dim=0)
+            if embeddings.size()[0] == 1:
+                embeddings = embeddings.squeeze(0)
+                print("No averaging")
+            else:
+                embeddings = torch.mean(embeddings, dim=0)
             embeddings_file_path = os.path.join(save_dir, f"pid{pid}_ts{time_index}.st")
             if validate_embeddings:
                 loaded_embeddings = load_file(embeddings_file_path)['embeddings']
