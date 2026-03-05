@@ -99,10 +99,7 @@ def main():
     eval_loader = DataLoader(eval_dataset, batch_size=1, shuffle=False, num_workers=4)
     
     # Load a trained model
-    model = Sybil("sybil_ensemble")
-    # Move model to the same device as data
-    for sybil_model in model.models:
-        sybil_model.to(device)
+    model = Sybil("sybil_ensemble", device=device)
 
     # Evaluation
     print("Evaluating on evaluation set...")
