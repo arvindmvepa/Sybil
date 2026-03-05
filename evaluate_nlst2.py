@@ -66,13 +66,13 @@ def evaluate_model(model, dataloader, device):
     
     # Classification metrics
     if len(all_preds) > 0:
-        accuracy = accuracy_score(all_labels, all_preds)
-        metrics['accuracy'] = accuracy
         auc = roc_auc_score(all_labels, all_preds)
         metrics['auc'] = auc
         
         # Calculate per-class metrics
         all_pred_labels = [1 if p >= 0.5 else 0 for p in all_preds]
+        accuracy = accuracy_score(all_labels, all_pred_labels)
+        metrics['accuracy'] = accuracy
         report = classification_report(all_labels, all_pred_labels, output_dict=True, zero_division=0)
         metrics['precision'] = report['macro avg']['precision']
         metrics['recall'] = report['macro avg']['recall']
