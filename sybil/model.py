@@ -304,6 +304,70 @@ class Sybil:
 
         return Prediction(scores=scores, attentions=attentions)
 
+    def _mod_predict(
+        self,
+        model: SybilNet,
+        series: Union[Serie, List[Serie]],
+        return_attentions: bool = False,
+    ) -> Prediction:
+        """Run predictions over the given serie(s).
+
+        Parameters
+        ----------
+        model: SybilNet
+            Instance of SybilNet
+        series : Union[Serie, Iterable[Serie]]
+            One or multiple series to run predictions for.
+        return_attentions : bool
+            If True, returns attention scores for each serie. See README for details.
+
+        Returns
+        -------
+        Prediction
+            Output prediction as risk scores.
+
+        """
+        if isinstance(series, Serie):
+            series = [series]
+        elif not isinstance(series, list):
+            raise ValueError("Expected either a Serie object or list of Serie objects.")
+
+        scores: List[List[float]] = []
+        attentions: List[Dict[str, np.ndarray]] = [] if return_attentions else None
+        for serie in series:
+            if not isinstance(serie, Serie):
+                raise ValueError("Expected a list of Serie objects.")
+
+            volume = serie.get_volume()
+            if self.device is not None:
+                volume = volume.to(self.device)
+
+            with torch.no_grad():
+                out = {}
+                embedding = model.image_encoder(volume)
+                pool_output = model.aggregate_and_classify(embedding)
+                out["activ"] = embedding
+                out.update(pool_output)
+                out["prob"] = pool_output["logit"].sigmoid()
+                score = out["logit"].sigmoid().squeeze(0).cpu().numpy()
+                scores.append(score.tolist())
+                if return_attentions:
+                    attentions.append(
+                        {
+                            "image_attention_1": out["image_attention_1"]
+                            .detach()
+                            .cpu(),
+                            "volume_attention_1": out["volume_attention_1"]
+                            .detach()
+                            .cpu(),
+                            "hidden": out["hidden"]
+                            .detach()
+                            .cpu(),
+                        }
+                    )
+
+        return Prediction(scores=scores, attentions=attentions)
+
     def _partial_predict(
         self,
         model: SybilNet,
@@ -370,6 +434,46 @@ class Sybil:
         attention_keys = None
         for sybil in self.ensemble:
             pred = self._predict(sybil, series, return_attentions)
+            scores.append(pred.scores)
+            if return_attentions:
+                attentions_.append(pred.attentions)
+                if attention_keys is None:
+                    attention_keys = pred.attentions[0].keys()
+
+        scores = np.mean(np.array(scores), axis=0)
+        calib_scores = self._calibrate(scores).tolist()
+
+        attentions = None
+        if return_attentions:
+            attentions = []
+            for i in range(len(series)):
+                att = {}
+                for key in attention_keys:
+                    att[key] = np.stack([
+                        attentions_[j][i][key] for j in range(len(self.ensemble))
+                    ])
+                attentions.append(att)
+
+        return Prediction(scores=calib_scores, attentions=attentions)
+    
+    def mod_predict(
+        self, series: Union[Serie, List[Serie]], return_attentions: bool = False, threads=0,
+    ) -> Prediction:
+
+        # Set CPU threads available to torch
+        num_threads = _torch_set_num_threads(threads)
+        self._logger.debug(f"Using {num_threads} threads for PyTorch inference")
+
+        if self._device_flexible:
+            self.device = self._pick_device()
+            self.to(self.device)
+        self._logger.debug(f"Beginning prediction on device: {self.device}")
+
+        scores = []
+        attentions_ = [] if return_attentions else None
+        attention_keys = None
+        for sybil in self.ensemble:
+            pred = self._mod_predict(sybil, series, return_attentions)
             scores.append(pred.scores)
             if return_attentions:
                 attentions_.append(pred.attentions)
