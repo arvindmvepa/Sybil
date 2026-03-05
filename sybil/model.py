@@ -331,7 +331,7 @@ class Sybil:
         for embedding_ in embedding:
             with torch.no_grad():
                 out = {}
-                pool_output = self.aggregate_and_classify(embedding_)
+                pool_output = model.aggregate_and_classify(embedding_)
                 out["activ"] = embedding_
                 out.update(pool_output)
                 out["prob"] = pool_output["logit"].sigmoid()
