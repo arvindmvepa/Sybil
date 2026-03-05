@@ -308,7 +308,6 @@ class Sybil:
         self,
         model: SybilNet,
         embedding,
-        return_attentions: bool = False,
     ) -> Prediction:
         """Run predictions using precomputed embeddings.
         Parameters
@@ -317,9 +316,6 @@ class Sybil:
             Instance of SybilNet
         embedding : torch.Tensor
             Precomputed embeddings for the series.
-        return_attentions : bool
-            If True, returns attention scores for each embedding. See README for details.
-
         Returns
         -------
         Prediction
@@ -327,33 +323,17 @@ class Sybil:
 
         """
         scores: List[List[float]] = []
-        attentions: List[Dict[str, np.ndarray]] = [] if return_attentions else None
-        for embedding_ in embedding:
-            with torch.no_grad():
-                out = {}
-                pool_output = model.aggregate_and_classify(embedding_)
-                out["activ"] = embedding_
-                out.update(pool_output)
-                out["prob"] = pool_output["logit"].sigmoid()
+        with torch.no_grad():
+            out = {}
+            pool_output = model.aggregate_and_classify(embedding)
+            out["activ"] = embedding
+            out.update(pool_output)
+            out["prob"] = pool_output["logit"].sigmoid()
 
-                score = out["logit"].sigmoid().squeeze(0).cpu().numpy()
-                scores.append(score.tolist())
-                if return_attentions:
-                    attentions.append(
-                        {
-                            "image_attention_1": out["image_attention_1"]
-                            .detach()
-                            .cpu(),
-                            "volume_attention_1": out["volume_attention_1"]
-                            .detach()
-                            .cpu(),
-                            "hidden": out["hidden"]
-                            .detach()
-                            .cpu(),
-                        }
-                    )
+            score = out["logit"].sigmoid().squeeze(0).cpu().numpy()
+            scores.append(score.tolist())
 
-        return Prediction(scores=scores, attentions=attentions)
+        return Prediction(scores=scores, attentions=None)
 
     def predict(
         self, series: Union[Serie, List[Serie]], return_attentions: bool = False, threads=0,
@@ -413,7 +393,7 @@ class Sybil:
         return Prediction(scores=calib_scores, attentions=attentions)
 
     def partial_predict(
-        self, embedding, return_attentions: bool = False, threads=0,
+        self, embedding, threads=0,
     ) -> Prediction:
         """Run predictions over the given serie(s) and ensemble using precomputed embeddings.
 
@@ -448,28 +428,13 @@ class Sybil:
         attentions_ = [] if return_attentions else None
         attention_keys = None
         for sybil in self.ensemble:
-            pred = self._partial_predict(sybil, embedding, return_attentions)
+            pred = self._partial_predict(sybil, embedding)
             scores.append(pred.scores)
-            if return_attentions:
-                attentions_.append(pred.attentions)
-                if attention_keys is None:
-                    attention_keys = pred.attentions[0].keys()
 
         scores = np.mean(np.array(scores), axis=0)
         calib_scores = self._calibrate(scores).tolist()
 
-        attentions = None
-        if return_attentions:
-            attentions = []
-            for i in range(embedding.shape[0]):
-                att = {}
-                for key in attention_keys:
-                    att[key] = np.stack([
-                        attentions_[j][i][key] for j in range(len(self.ensemble))
-                    ])
-                attentions.append(att)
-
-        return Prediction(scores=calib_scores, attentions=attentions)
+        return Prediction(scores=calib_scores, attentions=None)
 
     def evaluate(
         self, series: Union[Serie, List[Serie]], return_attentions: bool = False
