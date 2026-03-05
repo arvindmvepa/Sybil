@@ -307,19 +307,18 @@ class Sybil:
     def _partial_predict(
         self,
         model: SybilNet,
-        series: Union[Serie, List[Serie]],
         embedding,
         return_attentions: bool = False,
     ) -> Prediction:
-        """Run predictions over the given serie(s) using precomputed embeddings.
+        """Run predictions using precomputed embeddings.
         Parameters
         ----------
         model: SybilNet
             Instance of SybilNet
-        series : Union[Serie, Iterable[Serie]]
-            One or multiple series to run predictions for.
+        embedding : torch.Tensor
+            Precomputed embeddings for the series.
         return_attentions : bool
-            If True, returns attention scores for each serie. See README for details.
+            If True, returns attention scores for each embedding. See README for details.
 
         Returns
         -------
@@ -327,21 +326,13 @@ class Sybil:
             Output prediction as risk scores.
 
         """
-        if isinstance(series, Serie):
-            series = [series]
-        elif not isinstance(series, list):
-            raise ValueError("Expected either a Serie object or list of Serie objects.")
-
         scores: List[List[float]] = []
         attentions: List[Dict[str, np.ndarray]] = [] if return_attentions else None
-        for serie in series:
-            if not isinstance(serie, Serie):
-                raise ValueError("Expected a list of Serie objects.")
-
+        for embedding_ in embedding:
             with torch.no_grad():
                 out = {}
-                pool_output = self.aggregate_and_classify(embedding)
-                out["activ"] = embedding
+                pool_output = self.aggregate_and_classify(embedding_)
+                out["activ"] = embedding_
                 out.update(pool_output)
                 out["prob"] = pool_output["logit"].sigmoid()
 
@@ -422,14 +413,14 @@ class Sybil:
         return Prediction(scores=calib_scores, attentions=attentions)
 
     def partial_predict(
-        self, series: Union[Serie, List[Serie]], embedding, return_attentions: bool = False, threads=0,
+        self, embedding, return_attentions: bool = False, threads=0,
     ) -> Prediction:
         """Run predictions over the given serie(s) and ensemble using precomputed embeddings.
 
         Parameters
         ----------
-        series : Union[Serie, Iterable[Serie]]
-            One or multiple series to run predictions for.
+        embedding : torch.Tensor
+            Precomputed embeddings for the series.
         embedding_path : str
             Path to the precomputed embeddings file.
         return_attentions : bool
@@ -457,7 +448,7 @@ class Sybil:
         attentions_ = [] if return_attentions else None
         attention_keys = None
         for sybil in self.ensemble:
-            pred = self._partial_predict(sybil, series, embedding, return_attentions)
+            pred = self._partial_predict(sybil, embedding, return_attentions)
             scores.append(pred.scores)
             if return_attentions:
                 attentions_.append(pred.attentions)
@@ -470,7 +461,7 @@ class Sybil:
         attentions = None
         if return_attentions:
             attentions = []
-            for i in range(len(series)):
+            for i in range(embedding.shape[0]):
                 att = {}
                 for key in attention_keys:
                     att[key] = np.stack([
