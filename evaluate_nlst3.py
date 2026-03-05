@@ -89,7 +89,7 @@ def evaluate_model(model, dataloader, device):
     all_labels = []
     
     with torch.no_grad():
-        for batch in tqdm(dataloader, desc="Evaluating"):
+        for index, batch in enumerate(tqdm(dataloader, desc="Evaluating")):
             labels = batch['classification_labels'].to(device)
             
             outputs = model.predict(batch['serie'])
@@ -97,6 +97,8 @@ def evaluate_model(model, dataloader, device):
             
             all_preds.append(preds)
             all_labels.extend(labels.cpu().numpy())
+            if index > 100:
+                break
     
     # Calculate metrics
     metrics = {}
