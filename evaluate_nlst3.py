@@ -145,7 +145,7 @@ def main():
 
     # Evaluation
     print("Evaluating on evaluation set...")
-    eval_metrics = evaluate_model(model, eval_loader, device, debug_limit=args.debug_limit)
+    eval_metrics = evaluate_model(model, eval_loader, device, debug_limit=int(args.debug_limit) if args.debug_limit else None)
     
     print("\n=== EVAL RESULTS ===")
     for metric_name, value in eval_metrics.items():
