@@ -44,7 +44,6 @@ class BinaryClassificationDataset(Dataset):
 
 
 def evaluate_model(model, dataloader, device):
-    model.eval()
     all_preds = []
     all_labels = []
     
