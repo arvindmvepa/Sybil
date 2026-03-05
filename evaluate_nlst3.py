@@ -84,7 +84,7 @@ class BinaryClassificationDataset(Dataset):
         }
 
 
-def evaluate_model(model, dataloader, device):
+def evaluate_model(model, dataloader, device, debug_limit=None):
     all_preds = []
     all_labels = []
     
@@ -97,7 +97,7 @@ def evaluate_model(model, dataloader, device):
             
             all_preds.append(preds)
             all_labels.extend(labels.cpu().numpy())
-            if index > 1000:
+            if debug_limit and index > debug_limit:
                 break
     
     # Calculate metrics
@@ -124,6 +124,8 @@ def main():
     parser = argparse.ArgumentParser(description='Evaluate Sybil')
     parser.add_argument('--eval_file', required=False, default="/home/avepa/MedTrinity-25M/nlst_cancer_train_aux_vqa_delta2True_v0.json", help='Path to training data JSON file')
     parser.add_argument('--save_dir', default='./eval3_results', help='Directory to save results')
+    parser.add_argument('--model', default='sybil_ensemble', help='sybil model to use')
+    parser.add_argument('--debug_limit', default=None, help='Number of iterations before stopping')
     
     args = parser.parse_args()
     
@@ -139,11 +141,11 @@ def main():
     eval_loader = DataLoader(eval_dataset, batch_size=1, collate_fn=collate_with_serie_as_list, shuffle=False, num_workers=4)
     
     # Load a trained model
-    model = Sybil("sybil_ensemble", device=device)
+    model = Sybil(args.model, device=device)
 
     # Evaluation
     print("Evaluating on evaluation set...")
-    eval_metrics = evaluate_model(model, eval_loader, device)
+    eval_metrics = evaluate_model(model, eval_loader, device, debug_limit=args.debug_limit)
     
     print("\n=== EVAL RESULTS ===")
     for metric_name, value in eval_metrics.items():
