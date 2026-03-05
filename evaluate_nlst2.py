@@ -96,7 +96,7 @@ def main():
     
     # Datasets and dataloaders
     eval_dataset = BinaryClassificationDataset(args.eval_file)
-    eval_loader = DataLoader(eval_dataset, batch_size=args.batch_size, shuffle=False, num_workers=4)
+    eval_loader = DataLoader(eval_dataset, batch_size=1, shuffle=False, num_workers=4)
     
     # Load a trained model
     model = Sybil("sybil_ensemble")
