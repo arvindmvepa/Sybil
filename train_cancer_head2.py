@@ -134,7 +134,7 @@ def main():
     
     # Model
     embedding_dim = 512 * 25 * 16 * 16  # Flattened embedding dimension
-    sybil_model = Sybil("sybil1", device=device)
+    sybil_model = Sybil("sybil_1", device=device)
     model = ClassificationHead(
         input_dim=embedding_dim,
         hidden_dim=args.hidden_dim,
