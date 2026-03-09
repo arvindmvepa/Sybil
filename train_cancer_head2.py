@@ -44,6 +44,13 @@ class BinaryClassificationDataset(Dataset):
             'pid': item['pid']
         }
 
+    def get_labels(self):
+        """Return all labels for class weight computation"""
+        labels = []
+        for item in self.data:
+            labels.append(item['content_info']['cancer'])
+        return np.array(labels)
+
 
 class ClassificationHead(nn.Module):
     def __init__(self, input_dim, sybil_model, hidden_dim=512):
