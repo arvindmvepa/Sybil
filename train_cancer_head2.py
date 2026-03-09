@@ -50,7 +50,7 @@ class ClassificationHead(nn.Module):
         
         self.input_dim = input_dim
 
-        for model in sybil_model.models:
+        for model in sybil_model:
             self.pool = model.pool
             break
         for param in self.pool.parameters():
