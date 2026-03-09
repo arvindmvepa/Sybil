@@ -64,6 +64,29 @@ class ClassificationHead(nn.Module):
         return x
 
 
+def compute_class_weights(dataset, device):
+    """Compute class weights for balancing"""
+    labels = dataset.get_labels()
+    unique_classes = np.unique(labels)
+    
+    # Compute class weights using sklearn
+    class_weights = compute_class_weight(
+        class_weight='balanced',
+        classes=unique_classes,
+        y=labels
+    )
+    
+    # Convert to tensor
+    weight_tensor = torch.zeros(len(unique_classes))
+    for i, cls in enumerate(unique_classes):
+        weight_tensor[cls] = class_weights[i]
+    
+    print(f"Class distribution: {np.bincount(labels)}")
+    print(f"Class weights: {dict(zip(unique_classes, class_weights))}")
+    
+    return weight_tensor.to(device)
+
+
 def evaluate_model(model, dataloader, criterion, device):
     model.eval()
     total_loss = 0.0
