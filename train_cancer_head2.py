@@ -138,7 +138,7 @@ def main():
     model = ClassificationHead(
         input_dim=embedding_dim,
         hidden_dim=args.hidden_dim,
-        sybil_model=sybil_model
+        sybil_model=sybil_model[0]
     ).to(device)
     
     # Loss and optimizer
