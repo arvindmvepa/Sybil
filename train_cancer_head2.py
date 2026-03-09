@@ -9,7 +9,7 @@ from tqdm import tqdm
 import os
 from sklearn.metrics import roc_auc_score, accuracy_score, mean_squared_error, r2_score, classification_report
 import argparse
-from sybil.models.pooling_layer import MultiAttentionPool
+from sybil import Serie, Sybil
 
 
 class BinaryClassificationDataset(Dataset):
@@ -45,12 +45,12 @@ class BinaryClassificationDataset(Dataset):
 
 
 class ClassificationHead(nn.Module):
-    def __init__(self, input_dim, hidden_dim=512):
+    def __init__(self, input_dim, sybil_model, hidden_dim=512):
         super().__init__()
         
         self.input_dim = input_dim
 
-        self.pool = MultiAttentionPool()
+        self.pool = sybil_model.pool
         for param in self.pool.parameters():
             param.requires_grad = False
         self.linear = nn.Linear(512, 2)
@@ -134,9 +134,11 @@ def main():
     
     # Model
     embedding_dim = 512 * 25 * 16 * 16  # Flattened embedding dimension
+    sybil_model = Sybil("sybil1", device=device)
     model = ClassificationHead(
         input_dim=embedding_dim,
-        hidden_dim=args.hidden_dim
+        hidden_dim=args.hidden_dim,
+        sybil_model=sybil_model
     ).to(device)
     
     # Loss and optimizer
