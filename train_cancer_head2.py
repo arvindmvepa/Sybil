@@ -8,6 +8,7 @@ import numpy as np
 from tqdm import tqdm
 import os
 from sklearn.metrics import roc_auc_score, accuracy_score, mean_squared_error, r2_score, classification_report
+from sklearn.utils.class_weight import compute_class_weight
 import argparse
 from sybil import Serie, Sybil
 
@@ -63,6 +64,29 @@ class ClassificationHead(nn.Module):
         return x
 
 
+def compute_class_weights(dataset, device):
+    """Compute class weights for balancing"""
+    labels = dataset.get_labels()
+    unique_classes = np.unique(labels)
+    
+    # Compute class weights using sklearn
+    class_weights = compute_class_weight(
+        class_weight='balanced',
+        classes=unique_classes,
+        y=labels
+    )
+    
+    # Convert to tensor
+    weight_tensor = torch.zeros(len(unique_classes))
+    for i, cls in enumerate(unique_classes):
+        weight_tensor[cls] = class_weights[i]
+    
+    print(f"Class distribution: {np.bincount(labels)}")
+    print(f"Class weights: {dict(zip(unique_classes, class_weights))}")
+    
+    return weight_tensor.to(device)
+
+
 def evaluate_model(model, dataloader, criterion, device):
     model.eval()
     total_loss = 0.0
@@ -115,7 +139,8 @@ def main():
     parser.add_argument('--lr', type=float, default=0.001, help='Learning rate')
     parser.add_argument('--save_dir', default='./cancer2_checkpoints', help='Directory to save checkpoints')
     parser.add_argument('--hidden_dim', type=int, default=512, help='Hidden dimension size')
-    
+    parser.add_argument('--use_class_weights', action='store_true', help='Use class weights for loss balancing')
+
     args = parser.parse_args()
     
     # Create save directory
@@ -142,9 +167,14 @@ def main():
         hidden_dim=args.hidden_dim,
         sybil_model=sybil_model
     ).to(device)
+
+    # Compute class weights if requested
+    class_weights = None
+    if args.use_class_weights:
+        class_weights = compute_class_weights(train_dataset, device)
     
     # Loss and optimizer
-    criterion = nn.CrossEntropyLoss()
+    criterion = nn.CrossEntropyLoss(weight=class_weights)
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=10, factor=0.5)
     
