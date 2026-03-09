@@ -50,7 +50,9 @@ class ClassificationHead(nn.Module):
         
         self.input_dim = input_dim
 
-        self.pool = sybil_model.pool
+        for model in sybil_model.models:
+            self.pool = model.pool
+            break
         for param in self.pool.parameters():
             param.requires_grad = False
         self.linear = nn.Linear(512, 2)
@@ -138,7 +140,7 @@ def main():
     model = ClassificationHead(
         input_dim=embedding_dim,
         hidden_dim=args.hidden_dim,
-        sybil_model=sybil_model[0]
+        sybil_model=sybil_model
     ).to(device)
     
     # Loss and optimizer
