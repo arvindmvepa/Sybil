@@ -240,7 +240,6 @@ def main():
     parser.add_argument('--lr', type=float, default=0.001, help='Learning rate')
     parser.add_argument('--save_dir', default='./multitask1', help='Directory to save checkpoints')
     parser.add_argument('--hidden_dim', type=int, default=512, help='Hidden dimension size')
-    parser.add_argument('--hidden_dim', type=int, default=512, help='Hidden dimension size')
     parser.add_argument('--in_head_dims', type=int, default=1024, help='Input dimension size for the task-specific heads')
     
     args = parser.parse_args()
