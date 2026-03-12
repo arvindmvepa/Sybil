@@ -7,7 +7,7 @@ from safetensors.torch import load_file
 import numpy as np
 from tqdm import tqdm
 import os
-from sklearn.metrics import accuracy_score, mean_squared_error, r2_score, classification_report
+from sklearn.metrics import accuracy_score, mean_squared_error, r2_score, classification_report, roc_auc_score
 import argparse
 from sybil.models.pooling_layer import MultiAttentionPool
 
@@ -172,6 +172,7 @@ regression_task_names = ('longest_diameter', 'longest_perpendicular_diameter')):
     model.eval()
     total_loss = 0.0
     all_classification_preds = [[] for _ in range(len(classification_task_names))]
+    all_classification_probs = [[] for _ in range(len(classification_task_names))]
     all_classification_labels = [[] for _ in range(len(classification_task_names))]
     all_regression_preds = [[] for _ in range(len(regression_task_names))]
     all_regression_labels = [[] for _ in range(len(regression_task_names))]
@@ -191,13 +192,17 @@ regression_task_names = ('longest_diameter', 'longest_perpendicular_diameter')):
                               classification_mask, regression_mask)
             total_loss += loss.item()
             
-            # Collect predictions for metrics
+            # Collect predictions and probabilities for metrics
             for i, output in enumerate(classification_outputs):
                 task_mask = classification_mask[:, i]
                 if task_mask.sum() > 0:
                     valid_labels = classification_labels[:, i][task_mask]
-                    valid_preds = torch.argmax(output[task_mask], dim=1)
+                    valid_outputs = output[task_mask]
+                    valid_probs = torch.softmax(valid_outputs, dim=1)
+                    valid_preds = torch.argmax(valid_outputs, dim=1)
+                    
                     all_classification_preds[i].extend(valid_preds.cpu().numpy())
+                    all_classification_probs[i].extend(valid_probs.cpu().numpy())
                     all_classification_labels[i].extend(valid_labels.cpu().numpy())
             
             for i in range(2):
@@ -218,6 +223,23 @@ regression_task_names = ('longest_diameter', 'longest_perpendicular_diameter')):
         if len(all_classification_preds[i]) > 0:
             accuracy = accuracy_score(all_classification_labels[i], all_classification_preds[i])
             metrics[f'{task_name}_accuracy'] = accuracy
+            
+            # Calculate AUROC using one-vs-rest
+            try:
+                labels = np.array(all_classification_labels[i])
+                probs = np.array(all_classification_probs[i])
+                
+                # Check if we have more than one class present
+                unique_labels = np.unique(labels)
+                if len(unique_labels) > 1:
+                    auroc = roc_auc_score(labels, probs, multi_class='ovr', average='macro')
+                    metrics[f'{task_name}_auroc'] = auroc
+                else:
+                    metrics[f'{task_name}_auroc'] = np.nan  # Cannot compute AUROC with only one class
+                    
+            except Exception as e:
+                print(f"Warning: Could not compute AUROC for {task_name}: {e}")
+                metrics[f'{task_name}_auroc'] = np.nan
     
     # Regression metrics
     for i, task_name in enumerate(regression_task_names):
@@ -232,9 +254,9 @@ regression_task_names = ('longest_diameter', 'longest_perpendicular_diameter')):
 
 def main():
     parser = argparse.ArgumentParser(description='Train multi-task head for NLST embeddings')
-    parser.add_argument('--train_file', required=True, help='Path to training data JSON file')
-    parser.add_argument('--val_file', required=True, help='Path to validation data JSON file') 
-    parser.add_argument('--test_file', required=True, help='Path to test data JSON file')
+    parser.add_argument('--train_file', default='/home/avepa/MedTrinity-25M/nlst_train_aux_vqa_delta2True_v9.json', help='Path to training data JSON file')
+    parser.add_argument('--val_file', default='/home/avepa/MedTrinity-25M/nlst_val_aux_vqa_delta2True_v9.json', help='Path to validation data JSON file') 
+    parser.add_argument('--test_file', default='/home/avepa/MedTrinity-25M/nlst_test_aux_vqa_delta2True_v9.json', help='Path to test data JSON file')
     parser.add_argument('--batch_size', type=int, default=32, help='Batch size')
     parser.add_argument('--epochs', type=int, default=100, help='Number of epochs')
     parser.add_argument('--lr', type=float, default=0.001, help='Learning rate')
@@ -274,7 +296,7 @@ def main():
     # Loss and optimizer
     criterion = MultiTaskLoss(num_classification_tasks=5, num_regression_tasks=2).to(device)
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
-    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=10, factor=0.5)
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=10, factor=0.1)
     
     # Training loop
     best_val_loss = float('inf')
