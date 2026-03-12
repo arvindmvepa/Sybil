@@ -258,11 +258,13 @@ def main():
     parser.add_argument('--val_file', default='/home/avepa/MedTrinity-25M/nlst_val_aux_vqa_delta2True_v9.json', help='Path to validation data JSON file') 
     parser.add_argument('--test_file', default='/home/avepa/MedTrinity-25M/nlst_test_aux_vqa_delta2True_v9.json', help='Path to test data JSON file')
     parser.add_argument('--batch_size', type=int, default=32, help='Batch size')
-    parser.add_argument('--epochs', type=int, default=100, help='Number of epochs')
+    parser.add_argument('--epochs', type=int, default=20, help='Number of epochs')
     parser.add_argument('--lr', type=float, default=0.001, help='Learning rate')
-    parser.add_argument('--save_dir', default='./multitask1', help='Directory to save checkpoints')
+    parser.add_argument('--save_dir', default='./multitask1_new_scheduler', help='Directory to save checkpoints')
     parser.add_argument('--hidden_dim', type=int, default=512, help='Hidden dimension size')
     parser.add_argument('--in_head_dims', type=int, default=1024, help='Input dimension size for the task-specific heads')
+    parser.add_argument('--scheduler', default='cosine', help='Learning rate scheduler type: "cosine" or "plateau"')
+
     
     args = parser.parse_args()
     
@@ -296,7 +298,10 @@ def main():
     # Loss and optimizer
     criterion = MultiTaskLoss(num_classification_tasks=5, num_regression_tasks=2).to(device)
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
-    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=10, factor=0.1)
+    if args.scheduler == "cosine":
+        scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs, eta_min=1e-6)
+    else:
+        scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=10, factor=0.1)
     
     # Training loop
     best_val_loss = float('inf')
