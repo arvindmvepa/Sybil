@@ -337,8 +337,11 @@ def main():
         # Validation
         val_metrics = evaluate_model(model, val_loader, criterion, device)
         val_loss = val_metrics['loss']
-        
-        scheduler.step(val_loss)
+
+        if args.scheduler == "cosine":
+            scheduler.step()
+        else:
+            scheduler.step(val_loss)
         
         print(f"Epoch {epoch+1}/{args.epochs}")
         print(f"Train Loss: {avg_train_loss:.4f}")
